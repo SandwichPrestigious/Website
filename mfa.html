@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MySecureApp — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  /* ── Variables ── */
+  :root {
+    --bg:       #080a0f;
+    --surface:  #0e1117;
+    --card:     #13161e;
+    --border:   rgba(255,255,255,0.07);
+    --border-hi:rgba(255,255,255,0.14);
+    --accent:   #3b82f6;
+    --accent-hi:#60a5fa;
+    --accent-gl:rgba(59,130,246,0.18);
+    --text:     #f1f5f9;
+    --muted:    rgba(241,245,249,0.45);
+    --faint:    rgba(241,245,249,0.18);
+    --danger:   #f87171;
+    --success:  #34d399;
+    --mono:     'JetBrains Mono', monospace;
+    --sans:     'Syne', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* ── Ambient glow ── */
+  .glow {
+    position: fixed; border-radius: 50%; filter: blur(120px);
+    pointer-events: none; z-index: 0;
+  }
+  .glow-1 { width: 500px; height: 500px; background: rgba(59,130,246,0.07); top: -150px; left: -100px; }
+  .glow-2 { width: 400px; height: 400px; background: rgba(99,102,241,0.05); bottom: -100px; right: -80px; }
+
+  /* ── Stage wrapper — all steps share this ── */
+  #stage {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 400px;
+    padding: 20px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+  }
+
+  /* ── Wordmark ── */
+  .wordmark {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px;
+  }
+  .wordmark-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .wordmark-icon svg { display: block; }
+  .wordmark-name {
+    font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em;
+  }
+  .wordmark-tag {
+    font-size: 10px; font-family: var(--mono);
+    color: var(--faint); letter-spacing: 0.1em;
+  }
+
+  /* ── Step heading ── */
+  .step-head { margin-bottom: 24px; }
+  .step-head h1 { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; line-height: 1.2; }
+  .step-head p  { font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.6; font-family: var(--mono); }
+
+  /* ── Form field ── */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block; font-size: 10px; font-family: var(--mono);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 7px;
+  }
+  .field input {
+    width: 100%; padding: 11px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text); font-size: 14px; font-family: var(--sans);
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus {
+    border-color: rgba(59,130,246,0.5);
+    box-shadow: 0 0 0 3px var(--accent-gl);
+  }
+  .field input::placeholder { color: var(--faint); }
+
+  /* ── Primary button ── */
+  .btn {
+    width: 100%; padding: 13px;
+    background: var(--accent);
+    border: none; border-radius: 10px;
+    color: #fff; font-size: 14px; font-weight: 700;
+    font-family: var(--sans); letter-spacing: 0.02em;
+    cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    margin-top: 4px;
+  }
+  .btn:hover { background: var(--accent-hi); box-shadow: 0 0 24px rgba(59,130,246,0.4); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* ── Error banner ── */
+  .error-bar {
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.25);
+    border-radius: 9px; padding: 10px 14px;
+    font-size: 12px; font-family: var(--mono);
+    color: var(--danger); margin-bottom: 14px;
+    display: none;
+  }
+  .error-bar.show { display: block; }
+
+  /* ── QR section ── */
+  .qr-box {
+    display: flex; justify-content: center; margin: 4px 0 20px;
+  }
+  .qr-frame {
+    padding: 12px; border-radius: 14px;
+    background: rgba(59,130,246,0.06);
+    border: 1px solid rgba(59,130,246,0.18);
+  }
+  .qr-frame img { display: block; border-radius: 6px; width: 180px; height: 180px; }
+
+  .secret-chip {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 9px; padding: 10px 14px;
+    margin-bottom: 20px;
+  }
+  .secret-chip .s-label {
+    font-size: 9px; font-family: var(--mono); letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 4px;
+  }
+  .secret-chip .s-val {
+    font-size: 12px; font-family: var(--mono); color: var(--accent-hi);
+    letter-spacing: 0.12em; word-break: break-all;
+  }
+
+  /* ── OTP boxes ── */
+  .otp-row {
+    display: flex; gap: 8px; justify-content: center; margin-bottom: 22px;
+  }
+  .otp-row input {
+    width: 44px; height: 54px; text-align: center;
+    font-size: 22px; font-family: var(--mono); font-weight: 700;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    caret-color: var(--accent);
+  }
+  .otp-row input:focus {
+    border-color: rgba(59,130,246,0.55);
+    box-shadow: 0 0 0 3px var(--accent-gl);
+  }
+  .otp-row input.filled {
+    background: rgba(59,130,246,0.1);
+    border-color: rgba(59,130,246,0.4);
+  }
+
+  /* ── Timer bar ── */
+  .timer-wrap {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+  }
+  .timer-track {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.07); overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--accent); transition: width 0.5s linear, background 0.4s;
+  }
+  .timer-fill.urgent { background: var(--danger); }
+  .timer-label {
+    font-size: 11px; font-family: var(--mono);
+    color: var(--muted); min-width: 28px; text-align: right;
+    transition: color 0.3s;
+  }
+  .timer-label.urgent { color: var(--danger); }
+
+  /* ── Welcome screen ── */
+  #welcome-screen {
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    position: fixed; inset: 0; z-index: 10;
+    background: var(--bg);
+    animation: wFadeIn 0.6s ease both;
+  }
+  @keyframes wFadeIn { from { opacity:0; transform: scale(0.97); } to { opacity:1; transform: scale(1); } }
+  .welcome-badge {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: rgba(52,211,153,0.1);
+    border: 1.5px solid rgba(52,211,153,0.35);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 0 50px rgba(52,211,153,0.15);
+    animation: badgePop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+  }
+  @keyframes badgePop { from { transform: scale(0.5); opacity:0; } to { transform: scale(1); opacity:1; } }
+  .welcome-badge svg { display: block; }
+  .welcome-title {
+    font-size: 32px; font-weight: 800; color: var(--text);
+    letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 8px;
+  }
+  .welcome-name { color: var(--accent-hi); }
+  .welcome-sub {
+    font-size: 13px; font-family: var(--mono); color: var(--muted);
+    letter-spacing: 0.04em; margin-bottom: 32px;
+  }
+  .welcome-pills {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  }
+  .pill {
+    padding: 7px 14px; border-radius: 100px;
+    border: 1px solid var(--border);
+    font-size: 11px; font-family: var(--mono);
+    color: var(--faint); letter-spacing: 0.06em;
+  }
+  .pill.green { border-color: rgba(52,211,153,0.3); color: rgba(52,211,153,0.8); }
+
+  /* ── Animations ── */
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: fadeSlideUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* ── Back link ── */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; font-family: var(--mono); color: var(--faint);
+    background: none; border: none; cursor: pointer; margin-top: 14px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--muted); }
+
+  /* ── Security line ── */
+  .sec-line {
+    text-align: center; margin-top: 20px;
+    font-size: 10px; font-family: var(--mono);
+    color: rgba(255,255,255,0.14); letter-spacing: 0.08em;
+  }
+</style>
+</head>
+<body>
+
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<!-- ═══ WELCOME (shown last) ═══════════════════════════════════════════════ -->
+<div id="welcome-screen">
+  <div class="welcome-badge">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="welcome-title">Welcome back,<br><span class="welcome-name" id="w-name">User</span></div>
+  <div class="welcome-sub" id="w-email">authenticated · session active</div>
+  <div class="welcome-pills">
+    <div class="pill green">✓ MFA verified</div>
+    <div class="pill green">✓ RFC 6238 TOTP</div>
+    <div class="pill">Session secured</div>
+    <div class="pill">TLS 1.3</div>
+  </div>
+</div>
+
+<!-- ═══ STAGE (login → qr → otp) ══════════════════════════════════════════ -->
+<div id="stage">
+
+  <!-- ── STEP 1: Login ─────────────────────────────────────────────────── -->
+  <div id="step-login" class="card">
+    <div class="wordmark">
+      <div class="wordmark-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="wordmark-name">MySecureApp</div>
+        <div class="wordmark-tag">IAM Portal</div>
+      </div>
+    </div>
+
+    <div class="step-head">
+      <h1>Sign in</h1>
+      <p>Enter your credentials to continue to MFA setup.</p>
+    </div>
+
+    <div id="login-err" class="error-bar"></div>
+
+    <div class="field">
+      <label>Email address</label>
+      <input id="email" type="email" placeholder="you@domain.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="••••••••••" autocomplete="current-password"/>
+    </div>
+
+    <button class="btn" id="login-btn" onclick="doLogin()">Continue →</button>
+
+    <div class="sec-line">SECURED · AES-256 · TLS 1.3</div>
+
+    <!-- Demo hint -->
+    <hr class="divider"/>
+    <div style="font-size:11px; font-family:var(--mono); color:var(--faint); line-height:1.9;">
+      Demo accounts:<br>
+      <span style="color:var(--accent-hi)">admin@iamproject.com</span> / admin123<br>
+      <span style="color:var(--accent-hi)">test@iamproject.com</span> / test123
+    </div>
+  </div>
+
+  <!-- ── STEP 2: QR Code ───────────────────────────────────────────────── -->
+  <div id="step-qr" class="card" style="display:none;">
+    <div class="wordmark">
+      <div class="wordmark-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <path d="M14 14h2v2h-2zM18 14h3v2h-3zM14 18h3v3h-3zM20 20h1v1h-1z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="wordmark-name">MySecureApp</div>
+        <div class="wordmark-tag">MFA Setup</div>
+      </div>
+    </div>
+
+    <div class="step-head">
+      <h1>Scan QR code</h1>
+      <p>Open Google Authenticator and scan the code below.</p>
+    </div>
+
+    <div class="qr-box">
+      <div class="qr-frame">
+        <img id="qr-img" src="" alt="QR Code"/>
+      </div>
+    </div>
+
+    <div class="secret-chip">
+      <div class="s-label">Manual entry key</div>
+      <div class="s-val" id="secret-display">—</div>
+    </div>
+
+    <div style="background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:9px;padding:10px 14px;margin-bottom:20px;">
+      <span style="font-size:12px;font-family:var(--mono);color:rgba(251,191,36,0.8);">
+        ⚠ Save this key — it is shown only once.
+      </span>
+    </div>
+
+    <button class="btn" onclick="showOTP()">I've scanned it →</button>
+    <div style="text-align:center;">
+      <button class="back-link" onclick="backToLogin()">← Back to login</button>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: OTP Verify ────────────────────────────────────────────── -->
+  <div id="step-otp" class="card" style="display:none;">
+    <div class="wordmark">
+      <div class="wordmark-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="wordmark-name">MySecureApp</div>
+        <div class="wordmark-tag">Verification</div>
+      </div>
+    </div>
+
+    <div class="step-head">
+      <h1>Enter code</h1>
+      <p>Type the 6-digit code from your authenticator app.</p>
+    </div>
+
+    <div id="otp-err" class="error-bar"></div>
+
+    <!-- Countdown timer -->
+    <div class="timer-wrap">
+      <div class="timer-track">
+        <div class="timer-fill" id="timer-fill"></div>
+      </div>
+      <div class="timer-label" id="timer-label">30s</div>
+    </div>
+
+    <!-- 6-box OTP input -->
+    <div class="otp-row" id="otp-row">
+      <input type="text" inputmode="numeric" maxlength="1" class="otp-input"/>
+      <input type="text" inputmode="numeric" maxlength="1" class="otp-input"/>
+      <input type="text" inputmode="numeric" maxlength="1" class="otp-input"/>
+      <input type="text" inputmode="numeric" maxlength="1" class="otp-input"/>
+      <input type="text" inputmode="numeric" maxlength="1" class="otp-input"/>
+      <input type="text" inputmode="numeric" maxlength="1" class="otp-input"/>
+    </div>
+
+    <button class="btn" id="verify-btn" onclick="doVerify()">Verify →</button>
+    <div style="text-align:center;">
+      <button class="back-link" onclick="showQR()">← Back to QR code</button>
+    </div>
+  </div>
+
+</div><!-- /stage -->
+
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   CONFIGURATION
+   Change API_BASE to your Flask server URL when running locally.
+   e.g. const API_BASE = "http://localhost:5000";
+   For self-contained demo (no backend), leave as "" and the JS TOTP
+   engine below handles verification directly.
+══════════════════════════════════════════════════════════════════════════ */
+const API_BASE = "";   // Set to "http://localhost:5000" when Flask is running
+
+/* ══ JS TOTP ENGINE (mirrors pyotp — used when API_BASE is empty) ══════════
+   RFC 6238: HMAC-SHA1 over 30-second time counter.
+   This is the exact same algorithm your mfa_project.py runs via pyotp.
+══════════════════════════════════════════════════════════════════════════ */
+const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+function b32Decode(s) {
+  let bits = 0, val = 0, out = [];
+  for (const c of s.toUpperCase().replace(/\s|=/g,"")) {
+    const i = B32.indexOf(c); if (i < 0) continue;
+    val = (val << 5) | i; bits += 5;
+    if (bits >= 8) { out.push((val >>> (bits - 8)) & 0xff); bits -= 8; }
+  }
+  return new Uint8Array(out);
+}
+async function verifyTOTP(secret, code, win = 1) {
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw", b32Decode(secret), { name:"HMAC", hash:"SHA-1" }, false, ["sign"]
+    );
+    const now = BigInt(Math.floor(Date.now() / 1000 / 30));
+    for (let i = -win; i <= win; i++) {
+      const buf = new ArrayBuffer(8);
+      new DataView(buf).setBigUint64(0, now + BigInt(i), false);
+      const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, buf));
+      const off = sig[19] & 0xf;
+      const otp = (((sig[off]&0x7f)<<24)|(sig[off+1]<<16)|(sig[off+2]<<8)|sig[off+3]) % 1000000;
+      if (otp.toString().padStart(6,"0") === code) return true;
+    }
+    return false;
+  } catch { return false; }
+}
+
+/* ══ State ════════════════════════════════════════════════════════════════ */
+let currentSecret = "";
+let currentName   = "";
+let currentEmail  = "";
+
+/* ══ Mock users (used only when API_BASE is empty) ════════════════════════ */
+const MOCK_USERS = {
+  "admin@iamproject.com": { password:"admin123", name:"Admin" },
+  "test@iamproject.com":  { password:"test123",  name:"TestUser" },
+};
+const MOCK_SECRETS = {};  // email → base32 secret (generated once per session)
+
+/* ══ Base32 random secret generator (mirrors pyotp.random_base32) ═════════ */
+function randomBase32(len = 32) {
+  const arr = new Uint8Array(len);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => B32[b % 32]).join("");
+}
+
+/* ══ Build OTP Auth URI (mirrors totp.provisioning_uri) ═══════════════════ */
+function buildURI(secret, email) {
+  return `otpauth://totp/MySecureApp:${encodeURIComponent(email)}?secret=${secret}&issuer=MySecureApp&algorithm=SHA1&digits=6&period=30`;
+}
+
+/* ══ QR code via api.qrserver.com ══════════════════════════════════════════ */
+function qrURL(uri) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(uri)}&bgcolor=0e1117&color=60a5fa&format=png`;
+}
+
+/* ══ Helpers ══════════════════════════════════════════════════════════════ */
+function show(id)  { document.getElementById(id).style.display = "block"; }
+function hide(id)  { document.getElementById(id).style.display = "none";  }
+function setErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = "⚠  " + msg;
+  el.classList.add("show");
+}
+function clearErr(id) { document.getElementById(id).classList.remove("show"); }
+function setBtn(id, label, disabled) {
+  const b = document.getElementById(id);
+  b.textContent = label; b.disabled = disabled;
+}
+
+/* ══ STEP 1: Login ════════════════════════════════════════════════════════ */
+async function doLogin() {
+  const email    = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("password").value;
+  clearErr("login-err");
+
+  if (!email || !password) { setErr("login-err","All fields are required."); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr("login-err","Enter a valid email."); return; }
+
+  setBtn("login-btn","Verifying…", true);
+
+  if (API_BASE) {
+    /* ── Real Flask backend ── */
+    try {
+      const res = await fetch(`${API_BASE}/api/login`, {
+        method:"POST", credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!data.success) { setErr("login-err", data.error || "Login failed."); setBtn("login-btn","Continue →",false); return; }
+      currentSecret = data.secret;
+      currentName   = data.name;
+      currentEmail  = email;
+      document.getElementById("qr-img").src = data.qr_code;
+      document.getElementById("secret-display").textContent = currentSecret.match(/.{1,4}/g).join(" ");
+    } catch(e) { setErr("login-err","Could not reach server. Is Flask running?"); setBtn("login-btn","Continue →",false); return; }
+
+  } else {
+    /* ── Self-contained demo mode (no Flask needed) ── */
+    await new Promise(r => setTimeout(r, 700));
+    const user = MOCK_USERS[email];
+    if (!user || user.password !== password) {
+      setErr("login-err","Invalid email or password."); setBtn("login-btn","Continue →",false); return;
+    }
+    if (!MOCK_SECRETS[email]) MOCK_SECRETS[email] = randomBase32();
+    currentSecret = MOCK_SECRETS[email];
+    currentName   = user.name;
+    currentEmail  = email;
+    const uri = buildURI(currentSecret, email);
+    document.getElementById("qr-img").src = qrURL(uri);
+    document.getElementById("secret-display").textContent = currentSecret.match(/.{1,4}/g).join(" ");
+  }
+
+  setBtn("login-btn","Continue →", false);
+  hide("step-login"); showQR();
+}
+
+/* ══ STEP 2: QR ══════════════════════════════════════════════════════════ */
+function showQR() {
+  hide("step-login"); hide("step-otp");
+  show("step-qr");
+  document.getElementById("step-qr").style.animation = "fadeSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both";
+}
+function showOTP() { hide("step-qr"); initOTP(); show("step-otp"); startTimer(); }
+function backToLogin() { hide("step-qr"); hide("step-otp"); stopTimer(); show("step-login"); }
+
+/* ══ STEP 3: OTP ═════════════════════════════════════════════════════════ */
+function initOTP() {
+  const inputs = document.querySelectorAll(".otp-input");
+  inputs.forEach((inp, i) => {
+    inp.value = "";
+    inp.classList.remove("filled");
+
+    inp.oninput = e => {
+      const v = e.target.value.replace(/\D/g,"").slice(-1);
+      inp.value = v;
+      inp.classList.toggle("filled", !!v);
+      if (v && i < 5) inputs[i+1].focus();
+      const all = [...inputs].map(x=>x.value).join("");
+      if (all.length === 6) doVerify();
+    };
+    inp.onkeydown = e => {
+      if (e.key==="Backspace" && !inp.value && i>0) inputs[i-1].focus();
+    };
+    inp.onpaste = e => {
+      const p = e.clipboardData.getData("text").replace(/\D/g,"").slice(0,6);
+      if (p.length === 6) {
+        inputs.forEach((x,j)=>{ x.value=p[j]||""; x.classList.toggle("filled",!!x.value); });
+        inputs[5].focus(); e.preventDefault();
+        setTimeout(doVerify, 100);
+      }
+    };
+  });
+  clearErr("otp-err");
+  setTimeout(() => inputs[0].focus(), 50);
+}
+
+let timerInterval = null;
+function startTimer() {
+  stopTimer();
+  function tick() {
+    const secs = 30 - (Math.floor(Date.now()/1000) % 30);
+    const pct  = (secs / 30) * 100;
+    const fill  = document.getElementById("timer-fill");
+    const label = document.getElementById("timer-label");
+    const urgent = secs <= 7;
+    fill.style.width  = pct + "%";
+    fill.classList.toggle("urgent", urgent);
+    label.textContent = secs + "s";
+    label.classList.toggle("urgent", urgent);
+  }
+  tick();
+  timerInterval = setInterval(tick, 500);
+}
+function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
+async function doVerify() {
+  const inputs = document.querySelectorAll(".otp-input");
+  const code   = [...inputs].map(x=>x.value).join("");
+  clearErr("otp-err");
+  if (code.length !== 6) return;
+
+  setBtn("verify-btn","Verifying…", true);
+
+  let success = false;
+  let name = currentName;
+
+  if (API_BASE) {
+    /* ── Real Flask backend (calls pyotp.TOTP.verify) ── */
+    try {
+      const res = await fetch(`${API_BASE}/api/verify-otp`, {
+        method:"POST", credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      success = data.success;
+      if (data.name) name = data.name;
+      if (!success) setErr("otp-err", data.error || "Invalid code. Please try again.");
+    } catch(e) { setErr("otp-err","Server error. Is Flask running?"); setBtn("verify-btn","Verify →",false); return; }
+
+  } else {
+    /* ── JS TOTP engine (same math as pyotp) ── */
+    await new Promise(r => setTimeout(r, 500));
+    success = await verifyTOTP(currentSecret, code);
+    if (!success) setErr("otp-err","Invalid code. Please try again.");
+  }
+
+  if (success) {
+    stopTimer();
+    hide("step-otp");
+    showWelcome(name, currentEmail);
+  } else {
+    setBtn("verify-btn","Verify →", false);
+    inputs.forEach(x=>{ x.value=""; x.classList.remove("filled"); });
+    inputs[0].focus();
+  }
+}
+
+/* ══ STEP 4: Welcome ═════════════════════════════════════════════════════ */
+function showWelcome(name, email) {
+  document.getElementById("w-name").textContent = name;
+  document.getElementById("w-email").textContent = email + " · MFA authenticated";
+  const ws = document.getElementById("welcome-screen");
+  ws.style.display = "flex";
+}
+
+/* ══ Enter key on login form ═════════════════════════════════════════════ */
+document.getElementById("email").addEventListener("keydown", e => { if(e.key==="Enter") document.getElementById("password").focus(); });
+document.getElementById("password").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+</script>
+</body>
+</html>
