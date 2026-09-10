@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Swaroop Deshpande | Interactive Demo</title>
+    
+    <!-- Importing Google Fonts for modern typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-glow: #00f0ff;
+            --secondary-glow: #ff003c;
+            --bg-color: #050914;
+            --glass-bg: rgba(10, 15, 30, 0.6);
+            --glass-border: rgba(0, 240, 255, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #8ab4f8;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Particles Background Container */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #050914 0%, #0a1128 100%);
+        }
+
+        .container {
+            position: relative;
+            max-width: 650px;
+            margin: 50px auto;
+            padding: 40px;
+            z-index: 1;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            text-align: center;
+            transform: translateY(30px);
+            opacity: 0;
+            animation: floatUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 15px 40px 0 rgba(0, 240, 255, 0.15), inset 0 0 30px rgba(0, 240, 255, 0.1);
+        }
+
+        @keyframes floatUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Interactive Avatar */
+        .avatar-container {
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid transparent;
+            background-image: linear-gradient(var(--bg-color), var(--bg-color)), linear-gradient(120deg, var(--primary-glow), var(--secondary-glow));
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease;
+            cursor: pointer;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05) rotateY(10deg) rotateX(5deg);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.8), 0 0 20px rgba(255, 0, 60, 0.4);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 10px 0;
+            background: linear-gradient(to right, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        /* Typing Effect for Bio */
+        .bio-text {
+            font-family: 'Fira Code', monospace;
+            color: var(--primary-glow);
+            font-size: 1.1rem;
+            min-height: 28px;
+            margin-bottom: 20px;
+            display: inline-block;
+            border-right: 2px solid var(--primary-glow);
+            white-space: nowrap;
+            overflow: hidden;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--primary-glow); }
+        }
+
+        .highlight-text {
+            color: #d1d5db;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        /* Interactive Skills */
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .skill-tag {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #fff;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-tag::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.4), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .skill-tag:hover::before {
+            left: 100%;
+        }
+
+        .skill-tag:hover {
+            transform: translateY(-3px);
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--primary-glow);
+            box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2);
+            color: var(--primary-glow);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin: 30px 0 15px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h2::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: var(--primary-glow);
+            bottom: -5px;
+            left: 25%;
+            border-radius: 2px;
+        }
+
+        .professional-highlights {
+            text-align: left;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 3px solid var(--primary-glow);
+            margin-top: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .professional-highlights:hover {
+            transform: scale(1.02);
+            background: rgba(0,0,0,0.5);
+        }
+
+        .professional-highlights p {
+            margin: 10px 0;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .professional-highlights p strong {
+            color: #fff;
+            margin-right: 8px;
+            min-width: 150px;
+        }
+
+        /* Neon Buttons */
+        .button-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 35px;
+        }
+
+        .button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, var(--primary-glow), var(--secondary-glow));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: transparent;
+            box-shadow: 0 10px 20px rgba(0, 240, 255, 0.3);
+            color: #000;
+        }
+
+        .button:hover::before {
+            opacity: 1;
+        }
+
+        .button .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            filter: invert(1);
+            transition: filter 0.3s ease;
+        }
+
+        .button:hover .icon {
+            filter: invert(0);
+        }
+
+        .primary-action {
+            background: linear-gradient(45deg, rgba(0, 240, 255, 0.2), rgba(0, 240, 255, 0.05));
+            border-color: rgba(0, 240, 255, 0.5);
+        }
+
+        /* Mouse move gradient effect script will use this */
+        .glow-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            background: radial-gradient(circle 600px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 240, 255, 0.06), transparent 80%);
+            z-index: 0;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; margin: 20px auto; }
+            h1 { font-size: 2.2rem; }
+            .professional-highlights p { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Interactive Background -->
+    <div id="particles-js"></div>
+    <div class="glow-overlay"></div>
+
+    <div class="container">
+        <div class="glass-card">
+            
+            <div class="avatar-container">
+                <!-- Using a placeholder for demo, but will try to use local image if it loads -->
+                <img class="avatar" src="images/Swaroop.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Swaroop+Deshpande&background=0D8ABC&color=fff&size=150'" alt="Swaroop Deshpande">
+            </div>
+            
+            <h1>Swaroop Deshpande</h1>
+            
+            <div class="bio-text">> Security & Forensics Pro_</div>
+            
+            <div class="highlight-text">
+                <strong>M.Sc. in Homeland Security</strong><br>
+                National Forensic Sciences University
+            </div>
+
+            <h2>Core Expertise</h2>
+            <div class="skills">
+                <span class="skill-tag">Digital Forensics</span> 
+                <span class="skill-tag">Risk Mitigation</span>
+                <span class="skill-tag">CCTV Surveillance</span> 
+                <span class="skill-tag">Cyber Law (63B)</span> 
+                <span class="skill-tag">Threat Intelligence</span>
+                <span class="skill-tag">IAM</span>
+            </div>
+
+            <h2>Professional Highlights</h2>
+            <div class="professional-highlights">
+                <p><strong><span style="color:var(--primary-glow)">[✓]</span> Cyber Crime Analyst:</strong> <span>Analyzed digital evidence and issued 65B certificates for legal proceedings.</span></p>
+                <p><strong><span style="color:var(--primary-glow)">[✓]</span> Security & Vigilance:</strong> <span>Managed CCTV operations and access control at Patel Infrastructure Ltd.</span></p>
+            </div>
+
+            <div class="button-stack">
+                <a class="button primary-action" href="#" role="button">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    View Full Resume (Interactive)
+                </a>
+                
+                <a class="button" href="#" role="button">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    GitHub Projects
+                </a>
+
+                <a class="button" href="#" role="button">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    Connect on LinkedIn
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts for Interactivity -->
+    <!-- Particles.js for background animation -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Initialize Particles
+        particlesJS('particles-js', {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#00f0ff" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false } },
+                "size": { "value": 3, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 0.1, "sync": false } },
+                "line_linked": { "enable": true, "distance": 150, "color": "#00f0ff", "opacity": 0.2, "width": 1 },
+                "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "window",
+                "events": {
+                    "onhover": { "enable": true, "mode": "grab" },
+                    "onclick": { "enable": true, "mode": "push" },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": { "distance": 200, "line_linked": { "opacity": 0.6 } },
+                    "push": { "particles_nb": 4 }
+                }
+            },
+            "retina_detect": true
+        });
+
+        // Mouse glow effect
+        document.addEventListener('mousemove', (e) => {
+            const overlay = document.querySelector('.glow-overlay');
+            overlay.style.setProperty('--mouse-x', `${e.clientX}px`);
+            overlay.style.setProperty('--mouse-y', `${e.clientY}px`);
+        });
+
+        // 3D Tilt Effect on Avatar
+        const avatar = document.querySelector('.avatar');
+        avatar.addEventListener('mousemove', (e) => {
+            const rect = avatar.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const xOffset = (x - rect.width/2) / (rect.width/2);
+            const yOffset = (y - rect.height/2) / (rect.height/2);
+            
+            avatar.style.transform = `scale(1.05) perspective(1000px) rotateX(${-yOffset * 15}deg) rotateY(${xOffset * 15}deg)`;
+        });
+        
+        avatar.addEventListener('mouseleave', () => {
+            avatar.style.transform = `scale(1) perspective(1000px) rotateX(0) rotateY(0)`;
+        });
+    </script>
+</body>
+</html>
